@@ -1,0 +1,1 @@
+- Get ftell and file reading synced up with buffered file
