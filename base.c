@@ -28,17 +28,77 @@ int strcontains(const char* str, const char ch)
 }
 
 #include <stdio.h>
-static const char* ignore_chars = " .,;:\"\'-=";
-
-static void load_bfile(BFILE* fp)
+static void bfile_read_into_buffer(BFILE* fp)
 {
-  ASSERT(fp->ind == BFILE_SIZE);
   size_t read = fread(fp->buffer, 1, BFILE_SIZE, fp->fp);
   ASSERT(read <= BFILE_SIZE);
   if (read != BFILE_SIZE) {
     fp->eof = read;
   }
+}
+
+static void load_bfile(BFILE* fp)
+{
+  ASSERT(fp->ind == BFILE_SIZE);
+  bfile_read_into_buffer(fp);
   fp->ind = 0;
+}
+
+static void shift_bfile_left(BFILE* fp, size_t bytes)
+{
+#if ENABLE_ASSERT
+  ASSERT(bytes < BFILE_SIZE - fp->ind);
+  char c_before = fp->buffer[fp->ind];
+#endif
+
+  long start = ftell(fp->fp);
+  fseek(fp->fp, -(BFILE_SIZE + bytes), SEEK_CUR);
+  long end = ftell(fp->fp);
+
+  size_t actual_bytes = BFILE_SIZE - (start - end);
+  fp->ind += actual_bytes;
+  bfile_read_into_buffer(fp);
+
+#if ENABLE_ASSERT
+  ASSERT(fp->buffer[fp->ind] == c_before);
+#endif
+}
+
+// TODO - look closer at edge conditions
+static void shift_bfile_right(BFILE* fp, size_t bytes)
+{
+#if ENABLE_ASSERT
+  ASSERT(bytes <= fp->ind);
+  char c_before = fp->buffer[fp->ind];
+#endif
+
+  long start = ftell(fp->fp);
+  fseek(fp->fp, -(BFILE_SIZE - bytes), SEEK_CUR);
+  long end = ftell(fp->fp);
+
+  size_t actual_bytes = BFILE_SIZE - (end - start);
+  fp->ind -= actual_bytes;
+  bfile_read_into_buffer(fp);
+
+#if ENABLE_ASSERT
+  ASSERT(fp->buffer[fp->ind] == c_before);
+#endif
+}
+
+int bfseek(BFILE* fp, long int off, int wnc)
+{
+  int ret = fseek(fp->fp, off, wnc);
+  bfile_read_into_buffer(fp);
+  return ret;
+}
+
+long int bftell(BFILE* fp)
+{
+  if (fp->eof > -1) {
+    return ftell(fp->fp) - (fp->eof - fp->ind);
+  } else {
+    return ftell(fp->fp) - (BFILE_SIZE - fp->ind);
+  }
 }
 
 BFILE bfopen(const char* filename, const char* mode)
@@ -74,16 +134,18 @@ int bfgetc(BFILE* fp)
   return fp->buffer[fp->ind++];
 }
 
-// TODO
 int bungetc(int ch, BFILE* fp)
 {
   if (fp->ind == 0) {
-    fseek(fp->fp, -BFILE_SIZE - 1, SEEK_CUR);
-  } else {
-    if (ch != fp->buffer[fp->ind - 1])
+    shift_bfile_left(fp, BFILE_SIZE / 2);
+    if (fp->ind == 0)
       return EOF;
-    fp->ind--;
   }
+
+  if (ch != fp->buffer[fp->ind - 1])
+    return EOF;
+  fp->ind--;
+
   return ch;
 }
 
@@ -131,21 +193,6 @@ size_t copy_over(BFILE* ifp, FILE* ofp, const size_t bytes)
   return b;
 }
 
-int go_back_one_char(BFILE* fp)
-{
-  long pos = ftell(fp->fp);
-  if (pos == 0) {
-    log_warnln("Going backwards, but already at the start");
-    return -1;
-  }
-  fseek(fp->fp, -1, SEEK_CUR);
-  if (fp->ind == 0) {
-    fp->ind = BFILE_SIZE - 1;
-    load_bfile(fp);
-  }
-  return 0;
-}
-
 size_t copy_over_alpha_num(BFILE* ifp, FILE* ofp)
 {
   ASSERT(ifp);
@@ -159,7 +206,7 @@ size_t copy_over_alpha_num(BFILE* ifp, FILE* ofp)
       return b;
 
     if (!ISALPHANUMERIC((char)ch)) {
-      go_back_one_char(ifp);
+      bungetc(ch, ifp);
       return b;
     }
 
@@ -183,7 +230,7 @@ size_t noop_over_alpha_num(BFILE* ifp)
       return b;
 
     if (!ISALPHANUMERIC((char)ch)) {
-      go_back_one_char(ifp);
+      bungetc(ch, ifp);
       return b;
     }
 
@@ -198,10 +245,10 @@ size_t peek_over_alpha(BFILE* fp)
 
   size_t b = 0;
   char ch;
-  long start = ftell(fp->fp);
+  long start = bftell(fp);
 
   while (1) {
-    if ((ch = fgetc(fp)) == EOF)
+    if ((ch = bfgetc(fp)) == EOF)
       break;
 
     if (!ISALPHANUMERIC((char)ch)) {
@@ -211,7 +258,7 @@ size_t peek_over_alpha(BFILE* fp)
     b++;
   }
 
-  fseek(fp, start, SEEK_SET);
+  bfseek(fp, start, SEEK_SET);
 
   return b;
 }
@@ -224,11 +271,11 @@ size_t noop_over_non_alpha_num(BFILE* fp)
   char ch;
 
   while (1) {
-    if ((ch = fgetc(fp)) == EOF)
+    if ((ch = bfgetc(fp)) == EOF)
       return b;
 
     if (ISALPHANUMERIC((char)ch)) {
-      go_back_one_char(fp);
+      bungetc(ch, fp);
       return b;
     }
 
@@ -242,10 +289,10 @@ void print_next_alpha_num(BFILE* fp)
   ASSERT(fp);
 
   char ch;
-  long start = ftell(fp);
+  long start = bftell(fp);
 
   while (1) {
-    if ((ch = fgetc(fp)) == EOF)
+    if ((ch = bfgetc(fp)) == EOF)
       break;
 
     if (!ISALPHANUMERIC((char)ch))
@@ -255,7 +302,7 @@ void print_next_alpha_num(BFILE* fp)
   }
   printf("\n");
 
-  fseek(fp, start, SEEK_SET);
+  bfseek(fp, start, SEEK_SET);
 }
 
 size_t djb2_hash(const char* str)
@@ -275,12 +322,12 @@ size_t djb2_hash_next_word(BFILE* fp, size_t* word_size)
 
   size_t b = 0;
   char ch;
-  long start = ftell(fp);
+  long start = bftell(fp);
 
   size_t ret = 5381;
 
   while (1) {
-    if ((ch = fgetc(fp)) == EOF)
+    if ((ch = bfgetc(fp)) == EOF)
       break;
 
     if (!ISALPHANUMERIC((char)ch)) {
@@ -294,7 +341,7 @@ size_t djb2_hash_next_word(BFILE* fp, size_t* word_size)
   if (word_size)
     *word_size = b;
 
-  fseek(fp, start, SEEK_SET);
+  bfseek(fp, start, SEEK_SET);
 
   return ret;
 }

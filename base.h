@@ -26,6 +26,8 @@
 
 #define ISALPHANUMERIC(ch) (IN_INC(ch, 'A', 'Z') || IN_INC(ch, 'a', 'z') || IN_INC(ch, '0', '9'))
 
+#define MAX(a, b) ((a) < (b) ? (b) : (a))
+
 ////////////////////////////////////////////////////
 ////////// Section: Logging
 #include <stdio.h>
