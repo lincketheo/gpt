@@ -1,0 +1,32 @@
+[
+ {
+  "directory": "/home/tjl/Development/gpt",
+  "arguments": [
+   "gcc",
+   "-o",
+   "embedding_init",
+   "apps/embedding_init.c",
+   "src/buffered_file.c",
+   "src/mem.c",
+   "src/embedding_init.c",
+   "src/str_utils.c",
+   "src/file_utils.c",
+   "src/str_hash_set.c",
+   "src/random_utils.c",
+   "src/bit_set.c",
+   "src/buffered_file_utils.c",
+   "-g",
+   "-Iinclude",
+   "-Iinclude",
+   "-Wall",
+   "-Wextra",
+   "-Werror",
+   "-pedantic",
+   "-Wmissing-prototypes",
+   "-Wstrict-prototypes",
+   "-Wold-style-definition",
+   "-std=c99"
+  ],
+  "file": "src/buffered_file_utils.c"
+ }
+]

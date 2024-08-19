@@ -1,4 +1,5 @@
 #include "str_utils.h"
+#include <sys/types.h>
 
 typedef struct {
   string* entries;

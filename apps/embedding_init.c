@@ -1,4 +1,10 @@
+#include "embedding_init.h"
 #include "base.h"
+#include "file_utils.h"
+#include "logging.h"
+#include "str_utils.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 
 static void print_help(const char* program_name)
@@ -8,7 +14,7 @@ static void print_help(const char* program_name)
 
 int main(int argc, char** argv)
 {
-  if (argc > 1 && strequal(argv[1], "help")) {
+  if (argc > 1 && strequal(cstrtostr(argv[1]), cstrtostr("help"))) {
     print_help(argv[0]);
     return 0;
   }
@@ -23,12 +29,12 @@ int main(int argc, char** argv)
   char* mode = argv[3];
   int dim = atoi(argv[4]);
 
-  if(dim < 1) {
+  if (dim < 1) {
     log_errorln("Invalid dimension. Must be greater than 0");
     return 1;
   }
 
-  if(!strequal(mode, "a") && !strequal(mode, "w")) {
+  if (!strequal(cstrtostr(mode), cstrtostr("a")) && !strequal(cstrtostr(mode), cstrtostr("w"))) {
     log_errorln("Invalid mode: %s. Can be 'a' or 'w'", mode);
     return 1;
   }
@@ -38,5 +44,5 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  return token_vectorize(input, output, mode, dim);
+  return embedding_init(input, output, mode, dim);
 }

@@ -1,5 +1,6 @@
 #include "base.h"
 #include <stdio.h>
+#include <sys/types.h>
 
 #define BFILE_LEN 100
 

@@ -22,21 +22,36 @@
 #define RESET "\033[0m"
 
 #ifndef NLOGS
-#define log_common(fp, color, prefix, fmt, ...) fprintf(fp, BOLD_##color prefix RESET color " [%s(%s:%d)]: " RESET fmt, __FILE__, __func__, __LINE__, ##__VA_ARGS__);
+#define log_commonln(fp, color, prefix, ...)                                                               \
+  do {                                                                                                     \
+    fprintf(fp, BOLD_##color prefix RESET color " [%s(%s:%d)]: " RESET, __FILE__, __func__, __LINE__); \
+    fprintf(fp, __VA_ARGS__);                                                                              \
+    fprintf(fp, "\n");                                                                                     \
+  } while (0)
+
 #else
-#define log_common(fp, color, prefix, fmt, ...)
+#define log_commonln(fp, color, prefix, ...)
 #endif
 
-#define log_infoln(fmt, ...) log_common(stdout, WHITE, "INFO", fmt "\n", ##__VA_ARGS__)
+#define log_infoln(...) log_commonln(stdout, WHITE, "INFO", __VA_ARGS__)
 
+#define LDEBUG
 #ifdef LDEBUG
-#define log_debugln(fmt, ...) log_common(stdout, BLUE, "DEBUG", fmt "\n", ##__VA_ARGS__)
-#define log_debugln_expr(expr) STMNT(log_debugln(#expr); expr;)
+#define log_debugln(...) log_commonln(stdout, BLUE, "DEBUG", __VA_ARGS__)
+#define log_debugln_expr(expr) \
+  do {                         \
+    log_debugln(#expr);        \
+    expr;                      \
+  } while (0)
 #else
-#define log_debugln(fmt, ...)
+#define log_debugln(...)
 #define log_debugln_expr(expr) expr;
 #endif
 
-#define log_warnln(fmt, ...) log_common(stderr, YELLOW, "WARN", fmt "\n", ##__VA_ARGS__)
-#define log_errorln(fmt, ...) log_common(stderr, RED, "ERROR", fmt "\n", ##__VA_ARGS__);
-#define log_errorln_errno(fmt, ...)  STMNT(log_errorln(fmt, ##__VA_ARGS__); errno ? perror(__func__);)
+#define log_warnln(...) log_commonln(stderr, YELLOW, "WARN", __VA_ARGS__)
+#define log_errorln(...) log_commonln(stderr, RED, "ERROR", __VA_ARGS__);
+#define log_errorln_errno(...) \
+  do {                         \
+    log_errorln(__VA_ARGS__);  \
+    errno ? perror(__func__);  \
+  } while (0)

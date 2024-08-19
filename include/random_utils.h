@@ -1,4 +1,6 @@
 #include "base.h"
+#include <stdint.h>
+#include <stdlib.h>
 
 uint8_t random_uint8(uint8_t low, uint8_t high);
 uint16_t random_uint16(uint16_t low, uint16_t high);
@@ -12,4 +14,3 @@ void random_uint32s(uint32_t* buffer, size_t length, uint32_t low, uint32_t high
 void random_uint64s(uint64_t* buffer, size_t length, uint64_t low, uint64_t high);
 void random_floats(float* buffer, size_t length, float low, float high);
 void random_doubles(double* buffer, size_t length, double low, double high);
-

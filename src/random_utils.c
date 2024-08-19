@@ -1,5 +1,5 @@
+#include "random_utils.h"
 #include <stdlib.h>
-#include <stdint.h>
 
 uint8_t random_uint8(uint8_t low, uint8_t high)
 {

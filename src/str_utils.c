@@ -13,6 +13,7 @@ string cstrtostr(char* cstr)
       };
   }
   ASSERT(0 && "Encountered a string that's larger than MAX_STRLEN. Increase MAX_STRLEN or fix your bug");
+  return (string) { 0 };
 }
 
 int strequal(string str1, string str2)
@@ -22,7 +23,7 @@ int strequal(string str1, string str2)
 
   if (str1.len != str2.len)
     return 0;
-  for (int i = 0; i < str1.len; ++i) {
+  for (size_t i = 0; i < str1.len; ++i) {
     if (str1.str[i] != str2.str[i])
       return 0;
   }

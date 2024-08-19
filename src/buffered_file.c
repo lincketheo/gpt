@@ -1,6 +1,7 @@
 #include "buffered_file.h"
+#include "file_utils.h"
 
-#define ASSERT_RBFILE(bptr) ASSERT(bptr->eof == -1 || bptr->ind <= bptr->eof && (bptr->ind <= BFILE_LEN))
+#define ASSERT_RBFILE(bptr) ASSERT((bptr->eof == -1 || (ssize_t)bptr->ind <= bptr->eof) && (bptr->ind <= BFILE_LEN))
 #define ASSERT_WBFILE(bptr) ASSERT(bptr->ind <= BFILE_LEN)
 
 static void rbfile_read_into_buffer(RBFILE* fp)
@@ -22,7 +23,7 @@ static void shift_rbfile_left(RBFILE* fp, size_t bytes)
 
   long start = ftell(fp->fp);
   fseek(fp->fp, -(BFILE_LEN + bytes), SEEK_CUR);
-  usize ind_before = fp->ind;
+  size_t ind_before = fp->ind;
   fp->ind = 0;
   rbfile_read_into_buffer(fp);
   long end = ftell(fp->fp);
@@ -30,23 +31,6 @@ static void shift_rbfile_left(RBFILE* fp, size_t bytes)
   // Green path -> end = start - bytes.
   // Edge case - edge left => end > start - bytes
   fp->ind = ind_before + start - end;
-}
-
-static void shift_rbfile_right(RBFILE* fp, size_t bytes)
-{
-  ASSERT_RBFILE(fp);
-  ASSERT(bytes < fp->ind);
-
-  long start = ftell(fp->fp);
-  fseek(fp->fp, -BFILE_LEN + bytes, SEEK_CUR);
-  usize ind_before = fp->ind;
-  fp->ind = 0;
-  rbfile_read_into_buffer(fp);
-  long end = ftell(fp->fp);
-
-  // Green path -> end = start - bytes.
-  // Edge case - edge left => end > start - bytes
-  fp->ind = ind_before + end - start;
 }
 
 int rbfseek(RBFILE* fp, long int off, int wnc)
@@ -95,7 +79,7 @@ int rbfgetc(RBFILE* fp)
   return fp->buffer[fp->ind++];
 }
 
-int rbbungetc(int ch, RBFILE* fp)
+int rbungetc(int ch, RBFILE* fp)
 {
   ASSERT_RBFILE(fp);
   if (fp->ind == 0) {

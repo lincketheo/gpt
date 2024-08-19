@@ -1,3 +1,5 @@
 main
 .cache
 embedding_init
+out.txt
+.nfs**
