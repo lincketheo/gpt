@@ -8,3 +8,4 @@ void zero(void* input, size_t bytes)
     data[i] = 0;
   }
 }
+
