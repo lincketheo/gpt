@@ -1,17 +1,8 @@
 
-all: main
+all: embedding_init
 
-example: main
-	./main shakespeare.txt out.txt w 10
-
-example-gdb: main
-	gdb --args ./main shakespeare.txt out.txt w 10
-
-example-vg: main
-	valgrind -- ./main shakespeare.txt out.txt w 10
-
-main:
-	gcc -o $@ main.c base.c -g
+embedding_init:
+	gcc -o $@ apps/embedding_init.c src/*.c -g -I include
 
 clean:
-	rm -f main
+	rm -f embedding_init
