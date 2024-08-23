@@ -1,19 +1,3 @@
-////////////////////////////////////////////////////
-////////// Section: Assert
-#define ENABLE_ASSERT 1
-#if !defined(AssertBreak)
-#define AssertBreak() (*(volatile int*)0 = 0)
-#endif
-#if ENABLE_ASSERT
-#define ASSERT(expr) \
-  do {               \
-    if (!(expr)) {   \
-      AssertBreak(); \
-    }                \
-  } while (0);
-#else
-#define ASSERT(expr)
-#endif
 
 ////////////////////////////////////////////////////
 ////////// Section: Small Macro functions

@@ -1,15 +1,39 @@
-#if !defined(RuntimeBreak)
+#define DefaultAbort() (*(volatile int*)0 = 0)
+
+////////////////////////////////////////////////////
+////////// Section: Runtime Abort
+/// Different from ASSERT - always runs.
+/// ASSERT is removed in release, runtime
+/// errors could still happen
+#if !defined(RuntimeAbort)
 #include "logging.h"
-#define RuntimeBreak(...)     \
+#define RuntimeAbort(...)     \
   do {                        \
     log_errorln(__VA_ARGS__); \
-    *(volatile int*)0 = 0;    \
+    DefaultAbort();           \
   } while (0)
 #endif
 
 #define RUNTIME_CHECK(expr, ...) \
   do {                           \
     if (!(expr)) {               \
-      RuntimeBreak(__VA_ARGS__); \
+      RuntimeAbort(__VA_ARGS__); \
     }                            \
   } while (0)
+
+////////////////////////////////////////////////////
+////////// Section: Assert
+#define ENABLE_ASSERT 1
+#if !defined(AssertAbort)
+#define AssertAbort() (*(volatile int*)0 = 0)
+#endif
+#if ENABLE_ASSERT
+#define ASSERT(expr) \
+  do {               \
+    if (!(expr)) {   \
+      AssertAbort(); \
+    }                \
+  } while (0);
+#else
+#define ASSERT(expr)
+#endif

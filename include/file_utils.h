@@ -1,5 +1,4 @@
-#include "str_utils.h"
-#include <stdio.h>
+#include <stdio.h> // FILE
 
 int file_exists(const char* filename);
 
@@ -11,10 +10,7 @@ size_t write_random_floats(
     float low,
     float high);
 
-size_t write_string(
-    FILE* fp,
-    string str);
-
 size_t write_len_string(
     FILE* fp,
-    string str);
+    char* str,
+    size_t buf_len);

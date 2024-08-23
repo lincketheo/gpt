@@ -1,8 +1,8 @@
 #include "embedding_init.h"
 #include "buffered_file_utils.h"
 #include "file_utils.h"
-#include "str_hash_set.h"
 #include "logging.h"
+#include "str_hash_set.h"
 
 #define STR_ARENA_MEMORY 10000000
 #define HASH_TABLE_LEN 1000000
@@ -10,11 +10,10 @@
 int embedding_init(
     const char* input_file,
     const char* output_file,
-    const char* mode,
     size_t dim)
 {
   RBFILE ifp = rbfopen(input_file);
-  FILE* ofp = fopen(output_file, mode);
+  FILE* ofp = fopen(output_file, "w");
 
   mem_arena arena = mem_arena_init(STR_ARENA_MEMORY);
 

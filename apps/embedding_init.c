@@ -9,7 +9,7 @@
 
 static void print_help(const char* program_name)
 {
-  printf("Usage: %s input output mode dim\n", program_name);
+  printf("Usage: %s input output dim\n", program_name);
 }
 
 int main(int argc, char** argv)
@@ -26,16 +26,10 @@ int main(int argc, char** argv)
 
   char* input = argv[1];
   char* output = argv[2];
-  char* mode = argv[3];
-  int dim = atoi(argv[4]);
+  int dim = atoi(argv[3]);
 
   if (dim < 1) {
     log_errorln("Invalid dimension. Must be greater than 0");
-    return 1;
-  }
-
-  if (!strequal(cstrtostr(mode), cstrtostr("a")) && !strequal(cstrtostr(mode), cstrtostr("w"))) {
-    log_errorln("Invalid mode: %s. Can be 'a' or 'w'", mode);
     return 1;
   }
 
@@ -44,5 +38,5 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  return embedding_init(input, output, mode, dim);
+  return embedding_init(input, output, dim);
 }

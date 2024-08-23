@@ -4,26 +4,6 @@
 
 #include <sys/types.h>
 
-/**
-static size_t djb2_hash(const string str)
-{
-  size_t ret = 5381;
-  for (size_t i = 0; i < str.len; ++i) {
-    ret = ((ret << 5) + ret) + str.str[i];
-  }
-  return ret;
-}
-*/
-
-static size_t hash_func(string str)
-{
-  int ret = 0;
-  for (size_t i = 0; i < str.len; ++i) {
-    ret += str.str[i];
-  }
-  return ret;
-}
-
 void str_hash_set_init(str_hash_set shs)
 {
   zero(shs.entries, shs.len * sizeof(string*));

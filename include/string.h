@@ -1,11 +1,8 @@
-#pragma once 
-
-#include "base.h"
-#include <sys/types.h>
+#pragma once
 
 typedef struct {
   char* str;
-  size_t len;
+  unsigned int len;
 } string;
 
 string cstrtostr(char* cstr);

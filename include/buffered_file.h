@@ -1,14 +1,12 @@
-#include "base.h"
-#include <stdio.h>
-#include <sys/types.h>
+#include <stdio.h> // FILE
 
 #define BFILE_LEN 100
 
 typedef struct {
   FILE* fp;
   char buffer[BFILE_LEN];
-  size_t ind;
-  ssize_t eof; // -1 if no eof, otherwise ind of eof
+  unsigned int ind;
+  int eof; // -1 if no eof, otherwise ind of eof
 } RBFILE;
 
 typedef struct {

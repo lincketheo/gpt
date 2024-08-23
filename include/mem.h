@@ -1,25 +1,30 @@
-#include <stdlib.h>
-#include <stdint.h>
 
+//////////////////////////////////
+////////////// Section: Safe memory functions
 void safe_memcpy(
     void* dest,
     const void* src,
-    size_t bytes);
+    unsigned int bytes);
 
-void zero(void* input, size_t bytes);
+void zero(void* input, unsigned int bytes);
 
+//////////////////////////////////
+////////////// Section: Memory Arena
 typedef struct {
   void* data;
-  size_t ind;
-  size_t capacity;
+  unsigned int ind;
+  unsigned int capacity;
 } mem_arena;
 
-mem_arena mem_arena_init(size_t capacity);
+mem_arena mem_arena_init(unsigned int capacity);
 
-void* mem_arena_malloc_kill(mem_arena* a, size_t len);
-
-void mem_arena_push_byte_kill(mem_arena* a, uint8_t b);
-
-void* mem_arena_head(mem_arena* a);
+void* mem_arena_malloc(mem_arena* a, unsigned int len);
 
 void mem_arena_free(mem_arena* a);
+
+//////////////////////////////////
+////////////// Malloc Behaviors
+typedef enum {
+  FAIL_ABORT,
+  RET_NULL,
+} alloc_behavior;

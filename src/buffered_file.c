@@ -1,12 +1,19 @@
 #include "buffered_file.h"
-#include "file_utils.h"
+#include "exception_handling.h"
 
-#define ASSERT_RBFILE(bptr) ASSERT((bptr->eof == -1 || (ssize_t)bptr->ind <= bptr->eof) && (bptr->ind <= BFILE_LEN))
+#define RBFILE_EOF(bptr) (bptr->eof == -1)
+#define RBFILE_IND_CONSTRAINT(bptr) \
+  (bptr->ind <= BFILE_LEN) && (RBFILE_EOF(bptr) || (bptr->ind <= (unsigned int)bptr->eof))
+
+#define RBFILE_ASSERT(bptr) ASSERT(RBFILE_IND_CONSTRAINT(bptr))
 #define ASSERT_WBFILE(bptr) ASSERT(bptr->ind <= BFILE_LEN)
 
+/**
+ * TODO Circular queue with push and pop
+ */
 static void rbfile_read_into_buffer(RBFILE* fp)
 {
-  ASSERT_RBFILE(fp);
+  RBFILE_ASSERT(fp);
   ASSERT(fp->ind == 0);
 
   size_t read = fread(fp->buffer, 1, BFILE_LEN, fp->fp);
@@ -18,7 +25,7 @@ static void rbfile_read_into_buffer(RBFILE* fp)
 
 static void shift_rbfile_left(RBFILE* fp, size_t bytes)
 {
-  ASSERT_RBFILE(fp);
+  RBFILE_ASSERT(fp);
   ASSERT(bytes < BFILE_LEN - fp->ind);
 
   long start = ftell(fp->fp);
@@ -35,7 +42,7 @@ static void shift_rbfile_left(RBFILE* fp, size_t bytes)
 
 int rbfseek(RBFILE* fp, long int off, int wnc)
 {
-  ASSERT_RBFILE(fp);
+  RBFILE_ASSERT(fp);
   int ret = fseek(fp->fp, off, wnc);
   fp->ind = 0;
   rbfile_read_into_buffer(fp);
@@ -44,7 +51,7 @@ int rbfseek(RBFILE* fp, long int off, int wnc)
 
 long int rbftell(RBFILE* fp)
 {
-  ASSERT_RBFILE(fp);
+  RBFILE_ASSERT(fp);
   if (fp->eof > -1) {
     return ftell(fp->fp) - (fp->eof - fp->ind);
   } else {
@@ -64,7 +71,7 @@ RBFILE rbfopen(const char* filename)
 
 int rbfgetc(RBFILE* fp)
 {
-  ASSERT_RBFILE(fp);
+  RBFILE_ASSERT(fp);
   ASSERT(fp->ind <= BFILE_LEN);
   ASSERT(fp->eof < BFILE_LEN);
 
@@ -81,7 +88,7 @@ int rbfgetc(RBFILE* fp)
 
 int rbungetc(int ch, RBFILE* fp)
 {
-  ASSERT_RBFILE(fp);
+  RBFILE_ASSERT(fp);
   if (fp->ind == 0) {
     shift_rbfile_left(fp, BFILE_LEN / 2);
   }
@@ -94,7 +101,7 @@ int rbungetc(int ch, RBFILE* fp)
 
 int rbfpeek(RBFILE* fp)
 {
-  ASSERT_RBFILE(fp);
+  RBFILE_ASSERT(fp);
   int c;
   if (fp->ind == BFILE_LEN - 1) {
     c = fpeek(fp->fp);
